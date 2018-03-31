@@ -1,4 +1,0 @@
-SSID = ""
-PASSWORD = ""
-SERVO_PIN = 5
-SErVER_PORT = 80

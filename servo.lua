@@ -4,20 +4,32 @@
 -- open or close the curtain by a certain amount),
 -- and the state of the servo / curtain
 
-local servo_frequency = 50
-local clockwise = 20
-local ctr_clockwise = 120
+Servo = {
+  CLOCKWISE = 20,
+  CTR_CLOCKWISE = 120,
 
-gpio.mode(pin, gpio.OUTPUT)
-pwm.setup(pin, servo_frequency, ctr_clockwise)
+  timer = tmr.create()
+}
 
-function spin(direction)
-   print("Spinning " .. direction)
-   pwm.setduty(pin, direction)
-   pwm.start(pin)
+local FREQUENCY = 50
+
+function Servo.init(cfg)
+  Servo.pin = cfg.pin
+  gpio.mode(Servo.pin, gpio.OUTPUT)
+  pwm.setup(Servo.pin, FREQUENCY, Servo.CLOCKWISE)
 end
 
-function startup()
-   spin(ctr_clockwise)
-   tmr.alarm(2, 3000, tmr.ALARM_SINGLE, function() spin(clockwise) end)
+function Servo.spin(opt, done)
+  print("Spinning " .. opt.direction .. " for " .. opt.duration)
+  pwm.stop(Servo.pin) -- Stop whatever it was doing before
+  pwm.setduty(Servo.pin, opt.direction)
+  pwm.start(Servo.pin)
+  Servo.timer:alarm(opt.duration, tmr.ALARM_SINGLE, function()
+    done()
+    pwm.stop(Servo.pin)
+  end)
+end
+
+function Servo.stop()
+  pwm.stop(Servo.pin)
 end
